@@ -6,7 +6,7 @@ name: Manual workflow
 # Runs on manual trigger OR on schedule
 on:
   schedule:
-    - cron: '11 15 * * *'  # 8:07 PM Pakistan Time (UTC+5)
+    - cron: '23 15 * * *'  # 8:07 PM Pakistan Time (UTC+5)
   workflow_dispatch:
     inputs:
       name:
