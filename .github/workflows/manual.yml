@@ -1,6 +1,6 @@
 # This is a basic workflow that is manually triggered or scheduled
 
-name: Manual workflow
+name: Manual & cron job (11 pm UTC) workflow
 
 # Controls when the action will run.
 # Runs on manual trigger OR on schedule
