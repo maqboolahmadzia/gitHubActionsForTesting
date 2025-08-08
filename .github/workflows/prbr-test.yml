@@ -1,0 +1,69 @@
+name: PR Title and Branch Name Check
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+    branches:
+      - main
+      - test-pr
+
+jobs:
+  validate-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate PR title and branch name
+        env:
+          GH_TOKEN: ${{ secrets.ATEAPI }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          BRANCH_NAME: ${{ github.head_ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          echo "🔍 PR Title: $PR_TITLE"
+          echo "🔍 Branch: $BRANCH_NAME"
+
+          # Allowed prefixes
+          PREFIXES="test-pr|testPR|bugfixPR|hotfixPR"
+          
+          # Regex for PR title: prefix-number space description
+          TITLE_PATTERN="^(${PREFIXES})-[0-9]+ .+"
+          
+          # Regex for branch name: prefix-number-anything
+          BRANCH_PATTERN="^(${PREFIXES})-[0-9]+(-|$).*"
+
+          TITLE_VALID=true
+          BRANCH_VALID=true
+
+          if [[ ! "$PR_TITLE" =~ $TITLE_PATTERN ]]; then
+            echo "❌ PR title is invalid."
+            TITLE_VALID=false
+          fi
+
+          if [[ ! "$BRANCH_NAME" =~ $BRANCH_PATTERN ]]; then
+            echo "❌ Branch name is invalid."
+            BRANCH_VALID=false
+          fi
+
+          if [[ "$TITLE_VALID" == false || "$BRANCH_VALID" == false ]]; then
+            COMMENT_BODY="⚠️ **PR Validation Failed**\n\n"
+            if [[ "$TITLE_VALID" == false ]]; then
+              COMMENT_BODY+="❌ Invalid PR title format.\nExpected: \`<prefix>-<ID> <description>\`\nExample: \`testPR-123 update README\`\n\n"
+            fi
+            if [[ "$BRANCH_VALID" == false ]]; then
+              COMMENT_BODY+="❌ Invalid branch name format.\nExpected: \`<prefix>-<ID>-...\`\nExample: \`testPR-123-update-readme\`\n"
+            fi
+
+            echo -e "$COMMENT_BODY"
+
+            echo "📝 Adding comment to PR..."
+            curl -s -X POST \
+              -H "Authorization: token $GH_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"body\": \"$COMMENT_BODY\"}" \
+              "https://api.github.com/repos/$REPO/issues/$PR_NUMBER/comments"
+
+            exit 1
+          else
+            echo "✅ Title and branch name are valid."
+          fi
