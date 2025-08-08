@@ -5,7 +5,6 @@ on:
     types: [opened, edited, reopened, synchronize]
     branches:
       - main
-      - test-pr
 
 jobs:
   validate-pr:
@@ -24,13 +23,13 @@ jobs:
           echo "🔍 Branch: $BRANCH_NAME"
 
           # Allowed prefixes
-          PREFIXES="test-pr|testPR|bugfixPR|hotfixPR"
+          PREFIXES="test-pr|testPR|bugfixPR|bugfix|hotfixPR"
           
           # Regex for PR title: prefix-number space description
           TITLE_PATTERN="^(${PREFIXES})-[0-9]+ .+"
           
           # Regex for branch name: prefix-number-anything
-          BRANCH_PATTERN="^(${PREFIXES})-[0-9]+(-|$).*"
+          BRANCH_PATTERN="^(${PREFIXES})(-[0-9]+(-|$).*)?$"
 
           TITLE_VALID=true
           BRANCH_VALID=true
@@ -51,7 +50,7 @@ jobs:
               COMMENT_BODY+="❌ Invalid PR title format.\nExpected: \`<prefix>-<ID> <description>\`\nExample: \`testPR-123 update README\`\n\n"
             fi
             if [[ "$BRANCH_VALID" == false ]]; then
-              COMMENT_BODY+="❌ Invalid branch name format.\nExpected: \`<prefix>-<ID>-...\`\nExample: \`testPR-123-update-readme\`\n"
+              COMMENT_BODY+="❌ Invalid branch name format.\nExpected: \`<prefix>-<ID>-...\`\nExample: \`bugfix\`\n"
             fi
 
             echo -e "$COMMENT_BODY"
