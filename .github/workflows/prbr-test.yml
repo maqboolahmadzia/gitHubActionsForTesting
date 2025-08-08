@@ -1,4 +1,4 @@
-name: PR Title and Branch Name Check
+name: PR Title and Branch Name Check on Bugfix branch
 
 on:
   pull_request:
